@@ -1,70 +1,150 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+import React, { useState } from 'react';
+import { View, Button, Image, Alert, StyleSheet, TextInput, TouchableOpacity, Text } from 'react-native';
+import DraggableFlatList from 'react-native-draggable-flatlist';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import { PDFDocument } from 'pdf-lib';
+import { Buffer } from 'buffer';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+export default function App() {
+  const [images, setImages] = useState<{ uri: string; color: string }[]>([]);
+  const [pdfFileName, setPdfFileName] = useState('MyDocument');
 
-export default function HomeScreen() {
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsMultipleSelection: true,
+      quality: 0.5,
+    });
+
+    if (!result.canceled) {
+      const selectedImages = result.assets.map(image => ({
+        uri: image.uri,
+        color: getRandomColor(),
+      }));
+      setImages(prevImages => [...prevImages, ...selectedImages]);
+    }
+  };
+
+  const createPDF = async () => {
+    const pdfDoc = await PDFDocument.create();
+
+    for (const { uri } of images) {
+      const page = pdfDoc.addPage([595, 842]); // A4 формат
+      const jpgImageBytes = await FileSystem.readAsStringAsync(uri, { encoding: FileSystem.EncodingType.Base64 });
+      const jpgImage = await pdfDoc.embedJpg(jpgImageBytes);
+      page.drawImage(jpgImage, { x: 20, y: 20, width: 555, height: 802 });
+    }
+
+    const pdfBytes = await pdfDoc.save();
+    const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
+    const pdfPath = `${FileSystem.documentDirectory}${pdfFileName}.pdf`;
+
+    await FileSystem.writeAsStringAsync(pdfPath, pdfBase64, { encoding: FileSystem.EncodingType.Base64 });
+    Alert.alert("PDF is created!", `Path: ${pdfPath}`);
+    return pdfPath;
+  };
+
+  const downloadPDF = async () => {
+    const pdfPath = await createPDF();
+    if (pdfPath && (await Sharing.isAvailableAsync())) {
+      await Sharing.shareAsync(pdfPath);
+    } else {
+      Alert.alert("Sharing is not available");
+    }
+  };
+
+  const getRandomColor = () => {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <View style={styles.container}>
+      <TextInput
+          style={styles.input}
+          placeholder="PDF file name"
+          value={pdfFileName}
+          onChangeText={setPdfFileName}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+
+        <Button title="Select Images" onPress={pickImage}/>
+        <TouchableOpacity style={styles.createPDF_Button} onPress={downloadPDF}>
+          <Text style={styles.createPDF_ButtonText}>Create PDF</Text>
+        </TouchableOpacity>
+
+      <GestureHandlerRootView style={styles.drag_container}>
+        <DraggableFlatList
+          data={images}
+          renderItem={({ item, index, drag, isActive }) => (
+            <TouchableOpacity onLongPress={drag} style={[ styles.imageContainer, { backgroundColor: item.color, opacity: isActive ? 0.5 : 1 } ]} >
+              <Image source={{ uri: item.uri }} style={styles.image} />
+            </TouchableOpacity>
+          )}
+          keyExtractor={(item, index) => `draggable-item-${index}`}
+          onDragEnd={({ data }) => setImages(data)}
+          horizontal={false} // Задаваме вертикално подреждане
+        />
+      </GestureHandlerRootView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    padding: 20,
+    paddingTop: 50,
+    backgroundColor: '#fff',
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  drag_container: {
+    flex: 1,
+    padding: 20,
+    paddingTop: 20,
+    backgroundColor: '#fff',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  input: {
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
   },
+  imageContainer: {
+    marginBottom: 10,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 5,
+    overflow: 'hidden',
+    padding: 10, // Добавяме малко отстъп в контейнера
+  },
+  indexText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 5, // Разстояние между номера и изображението
+  },
+  image: {
+    width: '100%', // Запълваме ширината на контейнера
+    height: 200,
+    resizeMode: 'contain', // За да показваме цялото изображение
+  },
+  createPDF_Button: {
+    backgroundColor: 'green', // Green background for Create PDF button
+    paddingVertical: 10,
+    borderRadius: 5,
+    alignItems: 'center', // Center the text horizontally
+    marginTop: 20,
+    marginBottom: 20,
+  },
+  createPDF_ButtonText: {
+    color: 'white', // White text color
+    fontSize: 16, // Font size
+    fontWeight: 'bold', // Bold font
+  }
 });
