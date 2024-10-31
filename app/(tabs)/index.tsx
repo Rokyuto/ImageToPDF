@@ -67,6 +67,9 @@ export default function App() {
 
   return (
     <View style={styles.container}>
+
+      <Image source={require('@/assets/images/logo.png')} style={styles.logo} />
+
       <TextInput
           style={styles.input}
           placeholder="PDF file name"
@@ -92,6 +95,7 @@ export default function App() {
           horizontal={false} // Задаваме вертикално подреждане
         />
       </GestureHandlerRootView>
+
     </View>
   );
 }
@@ -146,5 +150,11 @@ const styles = StyleSheet.create({
     color: 'white', // White text color
     fontSize: 16, // Font size
     fontWeight: 'bold', // Bold font
+  },
+  logo: {
+    width: 50,
+    height: 50,
+    marginTop: -20,
+    marginBottom: 20
   }
 });
