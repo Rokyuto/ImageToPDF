@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Button, Image, Alert, StyleSheet, TextInput, TouchableOpacity, Text } from 'react-native';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
 import * as Sharing from 'expo-sharing';
 import { PDFDocument } from 'pdf-lib';
 import { Buffer } from 'buffer';
@@ -11,6 +12,17 @@ import { Buffer } from 'buffer';
 export default function App() {
   const [images, setImages] = useState<{ uri: string; color: string }[]>([]);
   const [pdfFileName, setPdfFileName] = useState('MyDocument');
+
+  useEffect(() => {
+    requestPermission();
+  }, []);
+
+  async function requestPermission() {
+    const { status } = await MediaLibrary.requestPermissionsAsync();
+    if (status!== 'granted') {
+      Alert.alert("Permission denied", "We need permission to access your media library.");
+    }
+  }
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -40,6 +52,8 @@ export default function App() {
 
     const pdfBytes = await pdfDoc.save();
     const pdfBase64 = Buffer.from(pdfBytes).toString('base64');
+    //const downloadsDir = `${FileSystem.documentDirectory}../Downloads/`;
+    //const pdfPath = `${downloadsDir}${pdfFileName}.pdf`;
     const pdfPath = `${FileSystem.documentDirectory}${pdfFileName}.pdf`;
 
     await FileSystem.writeAsStringAsync(pdfPath, pdfBase64, { encoding: FileSystem.EncodingType.Base64 });
