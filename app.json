@@ -16,21 +16,29 @@
       "supportsTablet": true
     },
     "android": {
+      "icon": "./assets/images/app_icon.png",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/logo.png",
+        "foregroundImage": "./assets/images/app_icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.rokyuto.ImageToPDF"
     },
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/logo.png"
+      "favicon": "./assets/images/app_icon.png"
     },
     "plugins": [
       "expo-router"
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "709de8ee-37ad-4a6d-9789-fd2b5b4d031f"
+      }
+    },
+    "owner": "rokyuto"
   }
 }

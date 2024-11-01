@@ -57,7 +57,7 @@ export default function App() {
     const pdfPath = `${FileSystem.documentDirectory}${pdfFileName}.pdf`;
 
     await FileSystem.writeAsStringAsync(pdfPath, pdfBase64, { encoding: FileSystem.EncodingType.Base64 });
-    Alert.alert("PDF is created!", `Path: ${pdfPath}`);
+    Alert.alert("Process finished!", `PDF is created!`);
     return pdfPath;
   };
 
@@ -106,7 +106,7 @@ export default function App() {
           )}
           keyExtractor={(item, index) => `draggable-item-${index}`}
           onDragEnd={({ data }) => setImages(data)}
-          horizontal={false} // Задаваме вертикално подреждане
+          horizontal={false}
         />
       </GestureHandlerRootView>
 
@@ -140,30 +140,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     overflow: 'hidden',
-    padding: 10, // Добавяме малко отстъп в контейнера
+    padding: 10,
   },
   indexText: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 5, // Разстояние между номера и изображението
+    marginBottom: 5,
   },
   image: {
-    width: '100%', // Запълваме ширината на контейнера
+    width: '100%',
     height: 200,
-    resizeMode: 'contain', // За да показваме цялото изображение
+    resizeMode: 'contain',
   },
   createPDF_Button: {
-    backgroundColor: 'green', // Green background for Create PDF button
+    backgroundColor: 'green',
     paddingVertical: 10,
     borderRadius: 5,
-    alignItems: 'center', // Center the text horizontally
+    alignItems: 'center',
     marginTop: 20,
     marginBottom: 20,
   },
   createPDF_ButtonText: {
-    color: 'white', // White text color
-    fontSize: 16, // Font size
-    fontWeight: 'bold', // Bold font
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   logo: {
     width: 50,
