@@ -1,5 +1,5 @@
 # Images to PDF app
-Mobile application where the users can upload images that they want to convert to a PDF file. The app can convert single image or multiple images into a single PDF file. The default order of the images is based on the selection order of the images when importing them into the app, but the application offers the opportnity to change the order of the images manualy.
+Mobile application where the users can upload images that they want to convert to a PDF file. The app can convert single image or multiple images into a single PDF file. By default, the order of the images is based on the selection order of the images, when importing them into the app, but the application offers the opportnity to change the order of the images manualy.
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
